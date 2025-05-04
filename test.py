@@ -1,4 +1,5 @@
 
+import torch
 import numpy as np
 import pandas as pd
 from src.TransformerST_utils_func import load_ST_file
@@ -28,12 +29,13 @@ def get_true_labels(adata, labels_path, id):
 
 
 if __name__ == '__main__':
-    # 读取空间转录组数据
-    adata_h5 = load_ST_file(file_fold='data/DLPFC/151508/outs/', load_images=False)  # 加载ST数据（不包括img）
-    adata_h5.var_names_make_unique()
-    print(adata_h5.obs)
+    # # 读取空间转录组数据
+    # adata_h5 = load_ST_file(file_fold='data/DLPFC/151508/outs/', load_images=False)  # 加载ST数据（不包括img）
+    # adata_h5.var_names_make_unique()
+    # print(adata_h5.obs)
+    #
+    # get_true_labels(adata_h5, 'data/DLPFC/barcode_level_layer_map.tsv', 151508)
+    #
+    # print(adata_h5.obs)
 
-    get_true_labels(adata_h5, 'data/DLPFC/barcode_level_layer_map.tsv', 151508)
-
-    print(adata_h5.obs)
-
+    print(torch.cuda.is_available())

@@ -1,16 +1,15 @@
 
-
 import torch
 import argparse
 import warnings
 import numpy as np
 import pandas as pd
-from src.TransformerST_graph_func import TransformerST_graph_construction
-from src.TransformerST_graph_func import calculate_adj_matrix,search_l
+from src.TransformerST_graph_func import TransformerST_graph_construction,calculate_adj_matrix,search_l
 from src.TransformerST_utils_func import mk_dir, adata_preprocess, load_ST_file
 import anndata
 from src.TransformerST_train_adaptive import TransformerST_Train
 from sklearn import metrics
+import matplotlib
 import matplotlib.pyplot as plt
 import scanpy as sc
 import cv2
@@ -43,7 +42,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--k', type=int, default=20, help='parameter k in spatial graph')
 parser.add_argument('--knn_distanceType', type=str, default='euclidean',
                     help='graph distance type: euclidean/cosine/correlation')
-parser.add_argument('--epochs', type=int, default=10, help='Number of epochs to train.')#1000
+parser.add_argument('--epochs', type=int, default=1000, help='Number of epochs to train.')#1000
 parser.add_argument('--cell_feat_dim', type=int, default=3000, help='Dim of input genes')
 parser.add_argument('--feat_hidden1', type=int, default=512, help='Dim of DNN hidden 1-layer.')
 parser.add_argument('--feat_hidden2', type=int, default=128, help='Dim of DNN hidden 2-layer.')
@@ -77,7 +76,7 @@ proj_list = ['151508']
 save_root = './output/DLPFC_adaptive/'
 
 
-def res_search_fixed_clus(adata, fixed_clus_count, increment=0.1):#0.01
+def res_search_fixed_clus(adata, fixed_clus_count, increment=0.005):#0.01
     '''
         arg1(adata)[AnnData matrix]
         arg2(fixed_clus_count)[int]
@@ -225,14 +224,15 @@ for proj_idx in range(len(proj_list)):
     params.cell_num = adata_h5.shape[0]
     print('==== Graph Construction Finished')
 
-    vision_transformer = False  # Set this to True or False depending on your specific case
+    vit_path = 'Vision Transformer/model/DLPFC_features_matrix_-vit_1_1_cv_1.pt'
+    vision_transformer = True  # Set this to True or False depending on your specific case
     # Check if using a vision transformer
     if vision_transformer:
       # If you want to combine the image vision transformer embedding with the original gene expression,
       # concatenate the outputs. Otherwise, you might use only the gene expression data.
       # Load image vision transformer embedding from a file
       # If gene_pred is saved as a PyTorch tensor
-      gene_pred = torch.load('gene_pred.pt')
+      gene_pred = torch.load(vit_path)
       gene_pred = gene_pred.numpy()  # Convert it to numpy if it's a tensor
 
       # Check if the dimensions match for concatenation
@@ -242,7 +242,7 @@ for proj_idx in range(len(proj_list)):
         print("Data will be processed for image-gene expression corepresentation using a vision transformer.")
         # The following line is where you'd include your vision transformer processing
         # For now, it just concatenates the arrays
-        adata_X = np.concatenate((adata_X, gene_pred), axis=0)
+        adata_X = np.concatenate((adata_X, gene_pred), axis=1)
       else:
         raise ValueError('The number of columns (genes) in adata_X and gene_pred must be the same')
     else:
@@ -272,8 +272,8 @@ for proj_idx in range(len(proj_list)):
     sc.pp.neighbors(adata_TransformerST, n_neighbors=params.eval_graph_n)
     sc.tl.umap(adata_TransformerST)
     eval_resolution = res_search_fixed_clus(adata_TransformerST, n_clusters)
-    # print(eval_resolution)
 
+    matplotlib.use('Agg')
     sc.tl.leiden(adata_TransformerST, key_added="TransformerST_leiden", resolution=eval_resolution)
     sc.pl.spatial(adata_TransformerST, img_key="hires", color=['TransformerST_leiden'], show=False)
     plt.savefig(f'{params.save_path}/TransformerST_leiden_plot.jpg', bbox_inches='tight', dpi=150)
@@ -283,7 +283,7 @@ for proj_idx in range(len(proj_list)):
         sc.pl.spatial(adata_TransformerST, img_key="hires", color=['True_labels'], show=False)
         plt.savefig(f'{params.save_path}/True_labels_plot.jpg', bbox_inches='tight', dpi=150)
 
-    evaluation(adata_TransformerST.obs['TransformerST_leiden'], adata_TransformerST.obs['True_labels'], f'{params.save_path}/cluster_results.txt')
+        evaluation(adata_TransformerST.obs['TransformerST_leiden'], adata_TransformerST.obs['True_labels'], f'{params.save_path}/cluster_results.txt')
 
     # df_meta = pd.read_csv(f'{data_root}/{data_name}/outs/metadata.tsv', sep='\t')
     # df_meta['TransformerST'] = adata_TransformerST.obs['TransformerST_leiden'].tolist()

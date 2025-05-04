@@ -14,7 +14,7 @@ class lung_finetune_flex(pl.LightningModule):
     """
     spatial transcriptomics task in lung tissue. This class defines a neural network architecture and its training, validation, and testing routines.
     """
-    def __init__(self, patch_size=128, n_layers=4, n_genes=1000, dim=1024, learning_rate=1e-4, dropout=0.1, n_pos=128):
+    def __init__(self, patch_size=128, n_layers=5, n_genes=3000, dim=1024, learning_rate=1e-4, dropout=0.1, n_pos=128):
         super().__init__()
         self.learning_rate = learning_rate
         patch_dim = 3 * patch_size * patch_size
@@ -32,7 +32,7 @@ class lung_finetune_flex(pl.LightningModule):
             nn.Linear(dim, n_genes)
         )
 
-    def forward(self, patches,centers):
+    def forward(self, patches, centers):
         # _, centers, _ = patches.size()
         centers_x = self.x_embed(centers[:, :, 0])
         centers_y = self.y_embed(centers[:, :, 1])
@@ -100,7 +100,8 @@ class lung_finetune_flex(pl.LightningModule):
         return optimizer
 
 if __name__ == '__main__':
-    a = torch.rand(1,4000,3*112*112)
+    a = torch.rand(1,4000,3*128*128)
     p = torch.ones(1,4000,2).long()
     model = lung_finetune_flex()
     x = model(a,p)
+    print(x)

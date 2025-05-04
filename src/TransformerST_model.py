@@ -68,8 +68,8 @@ class InnerProductDecoder(nn.Module):
 
     def forward(self, z):
         z = F.dropout(z, self.dropout, training=self.training)
-        adj = self.act(torch.mm(z, z.t())) 
-        return adj 
+        adj = self.act(torch.mm(z, z.t()))
+        return adj
 
 class SEDR(nn.Module):
     """SEDR for graph data, integrating feature autoencoders and GCN layers."""
@@ -443,7 +443,7 @@ class ST_Transformer_adaptive(nn.Module):
     def __init__(self, input_dim, params):
         super(ST_Transformer_adaptive, self).__init__()
         self.alpha = 1.0
-        self.latent_dim = params.gcn_hidden2+params.feat_hidden2 #params.gcn_hidden2+64
+        self.latent_dim = params.gcn_hidden2 + params.feat_hidden2 #params.gcn_hidden2+64
         self.layer_num=3
         self.at=0.5
         # Feature autoencoder
@@ -669,7 +669,7 @@ class ST_Transformer_adaptive_super_gai_new(nn.Module):
         mu,feat_x = self.encode(x, adj,adj_prue,training)
         # gnn_z = self.reparameterize(mu, logvar)
         z = torch.cat((feat_x, mu), 1)
-        
+
         if training:
             z_super = torch.zeros(6 * z.shape[0], z.shape[1]).cuda()
         # print(z.shape,enhanced_weights.shape,enhanced_index.shape,'werewr')
@@ -1269,7 +1269,7 @@ class ST_Transformer_adaptive_super00(nn.Module):
         q = q.pow((self.alpha + 1.0) / 2.0)
         q = (q.t() / torch.sum(q, 1)).t()
         # de_feat_hr = de_feat_hr.view(z1.shape[0]*6, -1)
-    
+
         return z, de_feat, q, feat_x,de_feat,x1_hr,atten
 
 class ST_Transformer_adaptive_super_gai(nn.Module):
