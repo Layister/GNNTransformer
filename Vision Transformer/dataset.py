@@ -180,9 +180,9 @@ class DLPFC(torch.utils.data.Dataset):
     """
     The DLPFC class in this file is designed as a custom dataset for handling spatial transcriptomics data, specifically tailored for dorsolateral prefrontal cortex data analysis.
     """
-    def __init__(self, train=True, gene_list=None, cell_feat_dim=3000, sr=False, fold=0):
+    def __init__(self, train=True, cell_feat_dim=3000, sr=False):
         super(DLPFC, self).__init__()
-        self.r = 256 // 4
+        self.r = 256 // 4 # 224 // 2
         self.label_encoder = LabelEncoder()  # Initialize label encoder
         self.cell_feat_dim = cell_feat_dim
         self.train = train
@@ -218,15 +218,15 @@ class DLPFC(torch.utils.data.Dataset):
     def __getitem__(self, index):
         i = index
         im = self.img_dict[self.id2name[i]]
-        #im = im.permute(1, 0, 2)
         exps = self.exp_dict[self.id2name[i]]
         centers = self.center_dict[self.id2name[i]]
         patch_dim = 3 * self.r * self.r * 4
 
-
         n_patches = len(centers)
         # print(len(centers_org))
         patches = torch.zeros((n_patches, patch_dim))
+        img_patches = []
+
         exps = torch.Tensor(exps)
         im_np = np.array(im)  # Convert the image object to a NumPy array
         im_torch = torch.from_numpy(im_np).float()  # Convert the NumPy array to a PyTorch tensor
@@ -234,6 +234,7 @@ class DLPFC(torch.utils.data.Dataset):
         positions = torch.LongTensor(loc)
         min_val = torch.min(im_torch)
         max_val = torch.max(im_torch)
+
         for i in range(n_patches):
             center = centers[i]
             x, y = center
@@ -241,17 +242,23 @@ class DLPFC(torch.utils.data.Dataset):
             normalized_patch = (patch - min_val) / (max_val - min_val)
             # Flatten and store the normalized patch
             patches[i, :] = normalized_patch.flatten()
-            if self.train:
-                return patches,positions, exps
-            else:
-                return patches, positions, exps
+
+            # 调整维度顺序：[H, W, C] → [C, H, W]
+            patch = patch.permute(2, 0, 1)  # 关键修改：调整为PyTorch格式
+            img_patches.append(patch.clone())
+
+        img_patches = torch.stack(img_patches)
+
+        if self.train:
+            return patches, positions, exps, img_patches
+        else:
+            return patches, positions, exps, img_patches
 
     def __len__(self):
         return len(self.exp_dict)
 
     def get_img(self, name):
-        img_fold = os.path.join('../data/DLPFC/', name,
-                                'outs/spatial/full_image.tif')
+        img_fold = os.path.join('../data/DLPFC/', name, 'outs/spatial/full_image.tif')
         img_color = cv2.imread(img_fold, cv2.IMREAD_COLOR)
         img_color = cv2.cvtColor(img_color, cv2.COLOR_BGR2RGB)  # Convert from BGR to RGB
 
