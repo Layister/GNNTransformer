@@ -41,7 +41,7 @@ print('===== Using device: ' + device)
 parser = argparse.ArgumentParser()
 parser.add_argument('--k', type=int, default=20, help='parameter k in spatial graph')
 parser.add_argument('--knn_distanceType', type=str, default='euclidean', help='graph distance type: euclidean/cosine/correlation')
-parser.add_argument('--epochs', type=int, default=100, help='Number of epochs to train.')#1000
+parser.add_argument('--epochs', type=int, default=1000, help='Number of epochs to train.')#1000
 parser.add_argument('--cell_feat_dim', type=int, default=3000, help='Dim of input genes')
 parser.add_argument('--feat_hidden1', type=int, default=512, help='Dim of DNN hidden 1-layer.')
 parser.add_argument('--feat_hidden2', type=int, default=128, help='Dim of DNN hidden 2-layer.')
@@ -75,7 +75,7 @@ proj_list = ['151508']
 save_root = './output/DLPFC_adaptive/'
 
 
-def res_search_fixed_clus(adata, fixed_clus_count, increment=0.1):#0.01
+def res_search_fixed_clus(adata, fixed_clus_count, increment=0.01):#0.01
     '''
         arg1(adata)[AnnData matrix]
         arg2(fixed_clus_count)[int]

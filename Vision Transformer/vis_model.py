@@ -15,7 +15,7 @@ from torch.utils.data import DataLoader, TensorDataset
 
 
 
-class lung_finetune_flex(pl.LightningModule):
+class old_finetune_flex(pl.LightningModule):
     """
     spatial transcriptomics task in lung tissue. This class defines a neural network architecture and its training, validation, and testing routines.
     """
@@ -229,6 +229,6 @@ class uni_finetune_flex(pl.LightningModule):
 if __name__ == '__main__':
     a = torch.rand(1,4000,3*128*128)
     p = torch.ones(1,4000,2).long()
-    model = lung_finetune_flex()
+    model = old_finetune_flex()
     x = model(a,p)
     print(x)

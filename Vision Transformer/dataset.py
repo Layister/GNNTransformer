@@ -29,17 +29,18 @@ import matplotlib.pyplot as plt
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 Image.MAX_IMAGE_PIXELS = None
 
-class LUNG(torch.utils.data.Dataset):
+class oldTranscriptomics(torch.utils.data.Dataset):
     """
-    The LUNG class in this file is designed as a custom dataset for handling spatial transcriptomics data, specifically tailored for lung tissue analysis.
+    The OldTranscriptomics class in this file is designed as a custom dataset for handling spatial transcriptomics data.
     """
-    def __init__(self, train=True, gene_list=None, cell_feat_dim=3000, sr=False, fold=0):
-        super(LUNG, self).__init__()
+    def __init__(self, train=True, cell_feat_dim=3000, sr=False, loc_dir='../data/DLPFC/'):
+        super(oldTranscriptomics, self).__init__()
         self.r = 256 // 4
         self.label_encoder = LabelEncoder()  # Initialize label encoder
         self.cell_feat_dim = cell_feat_dim
         self.train = train
         self.sr = sr
+        self.loc_dir = loc_dir
 
         names = ['A1']
 
@@ -95,16 +96,17 @@ class LUNG(torch.utils.data.Dataset):
             normalized_patch = (patch - min_val) / (max_val - min_val)
             # Flatten and store the normalized patch
             patches[i, :] = normalized_patch.flatten()
-            if self.train:
-                return patches,positions, exps
-            else:
-                return patches, positions, exps
+
+        if self.train:
+            return patches,positions, exps
+        else:
+            return patches, positions, exps
 
     def __len__(self):
         return len(self.exp_dict)
 
     def get_img(self, name):
-        img_fold = os.path.join('../data/Lung/', name,
+        img_fold = os.path.join(self.loc_dir, name,
                                 'outs/spatial/full_image.tif')
         img_color = cv2.imread(img_fold, cv2.IMREAD_COLOR)
         img_color = cv2.cvtColor(img_color, cv2.COLOR_BGR2RGB)  # Convert from BGR to RGB
@@ -112,7 +114,7 @@ class LUNG(torch.utils.data.Dataset):
         return img_color
 
     def get_cnt(self, name):
-        input_dir = os.path.join('../data/Lung/', name, 'outs/')
+        input_dir = os.path.join(self.loc_dir, name, 'outs/')
         adata = sc.read_visium(path=input_dir, count_file='filtered_feature_bc_matrix.h5')
         adata.var_names_make_unique()
         sc.pp.highly_variable_genes(adata, flavor="seurat_v3", n_top_genes=self.cell_feat_dim)
@@ -176,18 +178,18 @@ class LUNG(torch.utils.data.Dataset):
         return df
 
 
-class DLPFC(torch.utils.data.Dataset):
+class Transcriptomics(torch.utils.data.Dataset):
     """
-    The DLPFC class in this file is designed as a custom dataset for handling spatial transcriptomics data, specifically tailored for dorsolateral prefrontal cortex data analysis.
+    The Transcriptomics class in this file is designed as a custom dataset for handling spatial transcriptomics data.
     """
-    def __init__(self, train=True, cell_feat_dim=3000, sr=False):
-        super(DLPFC, self).__init__()
-        self.r = 256 // 4 # 224 // 2
+    def __init__(self, train=True, cell_feat_dim=3000, sr=False, loc_dir='../data/DLPFC/'):
+        super(Transcriptomics, self).__init__()
+        self.r = 224 // 2
         self.label_encoder = LabelEncoder()  # Initialize label encoder
         self.cell_feat_dim = cell_feat_dim
         self.train = train
         self.sr = sr
-
+        self.loc_dir = loc_dir
         names = ['151508']
 
         print('Loading imgs...')
@@ -258,14 +260,14 @@ class DLPFC(torch.utils.data.Dataset):
         return len(self.exp_dict)
 
     def get_img(self, name):
-        img_fold = os.path.join('../data/DLPFC/', name, 'outs/spatial/full_image.tif')
+        img_fold = os.path.join(self.loc_dir, name, 'outs/spatial/full_image.tif')
         img_color = cv2.imread(img_fold, cv2.IMREAD_COLOR)
         img_color = cv2.cvtColor(img_color, cv2.COLOR_BGR2RGB)  # Convert from BGR to RGB
 
         return img_color
 
     def get_cnt(self, name):
-        input_dir = os.path.join('../data/DLPFC/', name, 'outs/')
+        input_dir = os.path.join(self.loc_dir, name, 'outs/')
         adata = sc.read_visium(path=input_dir, count_file='filtered_feature_bc_matrix.h5')
         adata.var_names_make_unique()
         sc.pp.highly_variable_genes(adata, flavor="seurat_v3", n_top_genes=self.cell_feat_dim)
@@ -330,5 +332,5 @@ class DLPFC(torch.utils.data.Dataset):
 
 
 if __name__ == '__main__':
-    #dataset = LUNG(train=True)
-    dataset = DLPFC(train=True)
+    #dataset = OldTranscriptomics(train=True)
+    dataset = Transcriptomics(train=True)

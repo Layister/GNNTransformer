@@ -4,10 +4,10 @@ import pandas as pd
 from sklearn import metrics
 from torch.utils.data import DataLoader
 import pytorch_lightning as pl
-from vis_model import lung_finetune_flex, uni_finetune_flex
+from vis_model import old_finetune_flex, uni_finetune_flex
 from utils import *
-from dataset import LUNG
-from dataset import DLPFC
+from dataset import oldTranscriptomics
+from dataset import Transcriptomics
 from PIL import Image
 
 
@@ -17,12 +17,12 @@ def main():
     tag = '-vit_1_1_cv'
 
     # dataset = HER2ST(train=True, fold=fold)
-    #dataset = LUNG(train=True, cell_feat_dim=cell_feat_dim)
-    dataset = DLPFC(train=True, cell_feat_dim=cell_feat_dim)
+    dataset = oldTranscriptomics(train=True, cell_feat_dim=cell_feat_dim, loc_dir=f'../data/{dataname}/')
+    #dataset = Transcriptomics(train=True, cell_feat_dim=cell_feat_dim, loc_dir=f'../data/{dataname}/')
 
     train_loader = DataLoader(dataset, batch_size=1, num_workers=3, shuffle=True)
     # model=STModel(n_genes=785,hidden_dim=1024,learning_rate=1e-5)
-    model = lung_finetune_flex(n_layers=5, n_genes=cell_feat_dim, learning_rate=1e-4)
+    model = old_finetune_flex(n_layers=5, n_genes=cell_feat_dim, learning_rate=1e-4)
     #model = uni_finetune_flex(n_genes=cell_feat_dim)
     model.phase = "reconstruction"
     trainer = pl.Trainer(accelerator='gpu', devices=1, max_epochs=200)
