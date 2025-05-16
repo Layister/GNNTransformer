@@ -18,11 +18,7 @@ from PIL import ImageFile
 import cv2
 import json
 from sklearn.preprocessing import LabelEncoder
-# import mnnpy
 import seaborn as sns
-# import numpy as np
-# from PIL import Image
-# import matplotlib.pyplot as plt
 import matplotlib.pyplot as plt
 
 
@@ -33,7 +29,7 @@ class oldTranscriptomics(torch.utils.data.Dataset):
     """
     The OldTranscriptomics class in this file is designed as a custom dataset for handling spatial transcriptomics data.
     """
-    def __init__(self, train=True, cell_feat_dim=3000, sr=False, loc_dir='../data/DLPFC/'):
+    def __init__(self, names, train=True, cell_feat_dim=3000, sr=False, loc_dir='../data/Lung/'):
         super(oldTranscriptomics, self).__init__()
         self.r = 256 // 4
         self.label_encoder = LabelEncoder()  # Initialize label encoder
@@ -41,8 +37,6 @@ class oldTranscriptomics(torch.utils.data.Dataset):
         self.train = train
         self.sr = sr
         self.loc_dir = loc_dir
-
-        names = ['A1']
 
         print('Loading imgs...')
         self.img_dict = {i: torch.Tensor(np.array(self.get_img(i))) for i in names}
@@ -98,7 +92,7 @@ class oldTranscriptomics(torch.utils.data.Dataset):
             patches[i, :] = normalized_patch.flatten()
 
         if self.train:
-            return patches,positions, exps
+            return patches, positions, exps
         else:
             return patches, positions, exps
 
@@ -182,7 +176,7 @@ class Transcriptomics(torch.utils.data.Dataset):
     """
     The Transcriptomics class in this file is designed as a custom dataset for handling spatial transcriptomics data.
     """
-    def __init__(self, train=True, cell_feat_dim=3000, sr=False, loc_dir='../data/DLPFC/'):
+    def __init__(self, names, train=True, cell_feat_dim=3000, sr=False, loc_dir='../data/DLPFC/'):
         super(Transcriptomics, self).__init__()
         self.r = 224 // 2
         self.label_encoder = LabelEncoder()  # Initialize label encoder
@@ -190,7 +184,6 @@ class Transcriptomics(torch.utils.data.Dataset):
         self.train = train
         self.sr = sr
         self.loc_dir = loc_dir
-        names = ['151508']
 
         print('Loading imgs...')
         self.img_dict = {i: torch.Tensor(np.array(self.get_img(i))) for i in names}

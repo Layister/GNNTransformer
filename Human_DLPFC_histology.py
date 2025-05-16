@@ -1,4 +1,5 @@
 
+import os
 import torch
 import argparse
 import warnings
@@ -21,8 +22,8 @@ from rpy2.robjects import r
 # import rpy2.robjects as robjects
 from rpy2.robjects import pandas2ri
 import rpy2.robjects as ro
-import os
 from sklearn.metrics import adjusted_rand_score, normalized_mutual_info_score, homogeneity_score, completeness_score, v_measure_score
+
 
 
 importr('mclust')
@@ -75,7 +76,7 @@ proj_list = ['151508']
 save_root = './output/DLPFC_adaptive/'
 
 
-def res_search_fixed_clus(adata, fixed_clus_count, increment=0.01):#0.01
+def res_search_fixed_clus(adata, fixed_clus_count, increment=0.05):#0.01
     '''
         arg1(adata)[AnnData matrix]
         arg2(fixed_clus_count)[int]
@@ -218,12 +219,12 @@ for proj_idx in range(len(proj_list)):
     graph_dict,data_graph = TransformerST_graph_construction(X, adata_h5.shape[0],adata.obs['expression_louvain_label'], params)
     params.use_feature = 1
     graph_dict_prue, data_graph_prue = TransformerST_graph_construction(X, adata_h5.shape[0],adata.obs['expression_louvain_label'], params)
-    params.save_path = mk_dir(f'{save_root}/{data_name}/TransformerST_adaptive')
+    params.save_path = mk_dir(f'{save_root}/{data_name}/TransformerST_adaptive/')
 
     params.cell_num = adata_h5.shape[0]
     print('==== Graph Construction Finished')
 
-    vit_path = 'Vision Transformer/model/DLPFC_features_matrix-vit_1_1_cv.pt'
+    vit_path = 'Vision Transformer/model/DLPFC_features_matrix-uni_1_1_cv.pt'
     vision_transformer = True  # Set this to True or False depending on your specific case
     # Check if using a vision transformer
     if vision_transformer:
@@ -232,7 +233,7 @@ for proj_idx in range(len(proj_list)):
       # Load image vision transformer embedding from a file
       # If gene_pred is saved as a PyTorch tensor
       gene_pred = torch.load(vit_path)
-      gene_pred = gene_pred.numpy()  # Convert it to numpy if it's a tensor
+      gene_pred = gene_pred.cpu().detach().numpy()  # Convert it to numpy if it's a tensor
 
       # Check if the dimensions match for concatenation
       if adata_X.shape[1] == gene_pred.shape[1]:

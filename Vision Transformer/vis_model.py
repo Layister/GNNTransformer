@@ -126,7 +126,7 @@ class uni_finetune_flex(pl.LightningModule):
         max_vals = img.amax(dim=(2, 3), keepdim=True)
         img_normalized = (img - min_vals) / (max_vals - min_vals)
 
-        batch_size = 16
+        batch_size = 32
         dataset = TensorDataset(img_normalized.squeeze(dim=0))
         loader = DataLoader(dataset, batch_size=batch_size)
         features = []
@@ -137,7 +137,7 @@ class uni_finetune_flex(pl.LightningModule):
                 feat = self.model(x)  # [batch_size, dim]
                 features.append(feat)
 
-        features = torch.stack(features).unsqueeze(dim=0)  # [1, n, embed_dim]
+        features = torch.cat(features, dim=0).unsqueeze(dim=0)  # [1, n, embed_dim]
         centers_x = self.x_embed(centers[:, :, 0])
         centers_y = self.y_embed(centers[:, :, 1])
 
@@ -225,6 +225,8 @@ class uni_finetune_flex(pl.LightningModule):
         model.load_state_dict(torch.load(os.path.join(local_dir, "pytorch_model.bin"), map_location="cpu"), strict=True)
 
         return model
+
+
 
 if __name__ == '__main__':
     a = torch.rand(1,4000,3*128*128)
